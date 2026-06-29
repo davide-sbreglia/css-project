@@ -5,8 +5,8 @@ renames them to stable, lower-case names, and stacks all years into a single
 long-format panel with an added `year` column.
 
 Memory note: BRFSS files have 342 columns and ~400-500k rows each. To stay
-within Colab's RAM, we read each file in chunks, keep only the six needed
-columns from each chunk, and process one year at a time.
+within Colab's RAM, we read each file in chunks, keep only the needed columns
+from each chunk, and process one year at a time.
 
 Cross-year harmonization: all key variables keep the same BRFSS name across
 2011-2019 EXCEPT respondent sex (SEX in 2011-2017, SEX1 in 2018, SEXVAR in 2019),
@@ -23,14 +23,17 @@ RAW_DIR = Path("data/raw")
 PROCESSED_DIR = Path("data/processed")
 YEARS = range(2011, 2020)
 
+# Variables with a stable BRFSS name across all years -> our standard name.
 STABLE_VARS = {
     "_STATE": "state",
     "MSCODE": "geo_msa",
     "GENHLTH": "gen_health",
     "MENTHLTH": "ment_health_days",
     "PHYSHLTH": "phys_health_days",
+    "_EDUCAG": "education",   # CDC-computed education, 4 categories (1-4), 9=missing
 }
 
+# Year-specific name of the sex variable.
 SEX_VAR_BY_YEAR = {y: "SEX" for y in range(2011, 2018)}
 SEX_VAR_BY_YEAR[2018] = "SEX1"
 SEX_VAR_BY_YEAR[2019] = "SEXVAR"
@@ -47,11 +50,7 @@ def xpt_path_for(year: int) -> Path:
 
 
 def load_year(year: int) -> pd.DataFrame:
-    """Read one BRFSS year in chunks, keeping only the needed columns.
-
-    Reading in chunks avoids holding the full 342-column file in memory; we
-    subset to the six needed columns from each chunk and discard the rest.
-    """
+    """Read one BRFSS year in chunks, keeping only the needed columns."""
     sex_var = SEX_VAR_BY_YEAR[year]
     keep = list(STABLE_VARS.keys()) + [sex_var]
 
