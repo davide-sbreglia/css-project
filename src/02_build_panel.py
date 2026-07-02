@@ -6,7 +6,6 @@ RAW_DIR = Path("data/raw")
 PROCESSED_DIR = Path("data/processed")
 YEARS = range(2011, 2020)
 
-# Aggiunte le variabili ML comportamentali e cliniche
 STABLE_VARS = {
     "_STATE": "state", "MSCODE": "geo_msa", "GENHLTH": "gen_health", "MARITAL": "marital",
     "MENTHLTH": "ment_health_days", "PHYSHLTH": "phys_health_days",
@@ -27,7 +26,6 @@ def load_year(year):
     cols0 = set(next(pd.read_sas(xpt_file, format="xport", chunksize=1)).columns)
     race_var, race_map = ("_IMPRACE", IMPRACE_MAP) if "_IMPRACE" in cols0 else ("_RACEGR3", RACEGR3_MAP)
     
-    # Teniamo solo le variabili che esistono effettivamente in quell'anno
     keep = [v for v in STABLE_VARS if v in cols0] + [sex_var, emp_var, race_var]
     df = pd.concat([c[keep] for c in pd.read_sas(xpt_file, format="xport", chunksize=50_000)], ignore_index=True)
     
@@ -43,6 +41,6 @@ def main():
     frames = [load_year(y) for y in YEARS]
     panel = pd.concat(frames, ignore_index=True)
     panel.to_parquet(PROCESSED_DIR / "brfss_panel.parquet", index=False)
-    print(f"Panel aggiornato: {len(panel):,} rows x {panel.shape[1]} cols")
+    print(f"Panel completato: {len(panel):,} rows x {panel.shape[1]} cols")
 
 if __name__ == "__main__": main()
